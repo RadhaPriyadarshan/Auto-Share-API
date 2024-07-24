@@ -200,7 +200,7 @@ router.post('/forgot-password', async (req, res) => {
         const mailOptions = {
             from: 'nalaiyathiranlab@gmail.com',
             to: email,
-            subject: 'Auto-Share-Password Reset',
+            subject: 'Auto Share Password Reset',
             text: `Click the following link to reset your password: ${process.env.FRONTEND_URL}/reset-password/${resetPasswordToken}`
         };
 
