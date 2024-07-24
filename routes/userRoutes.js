@@ -1,15 +1,10 @@
 const express = require('express');
 const User = require('../models/user');
 const Car = require('../models/car');
-const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
-const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const cors = require('cors');
 
 const router = express.Router();
-
-
 
 // Function to check if a car is already booked within the specified date range
 const isCarBooked = (car, startDate, endDate) => {
@@ -174,75 +169,75 @@ router.post('/:id/reviews', async (req, res) => {
   }
 });
 
-// Route to handle forget password
+// Route to handle forgot password
 router.post('/forgot-password', async (req, res) => {
-    const { email } = req.body;
+  const { email } = req.body;
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        const resetPasswordToken = Math.random().toString(36).substring(2, 15);
-        user.resetPasswordToken = resetPasswordToken;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
-
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_PASS
-            }
-        });
-
-        const mailOptions = {
-            from: 'nalaiyathiranlab@gmail.com',
-            to: email,
-            subject: 'Auto Share Password Reset',
-            text: `Click the following link to reset your password: ${process.env.FRONTEND_URL}/reset-password/${resetPasswordToken}`
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log(error);
-                return res.status(500).json({ error: 'Failed to send email' });
-            } else {
-                console.log('Email sent: ' + info.response);
-                return res.status(200).json({ message: 'Email sent successfully' });
-            }
-        });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
+
+    const resetPasswordToken = Math.random().toString(36).substring(2, 15);
+    user.resetPasswordToken = resetPasswordToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: 'nalaiyathiranlab@gmail.com',
+      to: email,
+      subject: 'Auto Share Password Reset',
+      text: `Click the following link to reset your password: ${process.env.FRONTEND_URL}/reset-password/${resetPasswordToken}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'Failed to send email' });
+      } else {
+        console.log('Email sent: ' + info.response);
+        return res.status(200).json({ message: 'Email sent successfully' });
+      }
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 router.post('/reset-password', async (req, res) => {
-    const { token, newPassword } = req.body;
+  const { token, newPassword } = req.body;
 
-    try {
-        const user = await User.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
 
-        if (!user) {
-            return res.status(400).json({ error: 'Invalid or expired token' });
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        res.status(200).json({ message: 'Password reset successfully' });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
     }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 module.exports = router;

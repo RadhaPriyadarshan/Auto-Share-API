@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema({
     car: { type: mongoose.Schema.Types.ObjectId, ref: 'Car' },
     rating: { type: Number, min: 1, max: 5, required: true },
     review: { type: String }
-  }]
+  }],
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 });
 
 const User = mongoose.model('User', userSchema);
