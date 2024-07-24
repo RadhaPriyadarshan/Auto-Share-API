@@ -181,7 +181,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetPasswordToken = Math.random().toString(36).substring(2, 15);
     user.resetPasswordToken = resetPasswordToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + 3600000; 
     await user.save();
 
     const transporter = nodemailer.createTransport({
